@@ -8,3 +8,10 @@ This repository is organized in modules for readability:
 
 In Google Apps Script the code can still live in a single file or multiple `.gs` files.
 The modular structure here is meant to make the logic easier to review.
+
+## Secrets
+This repo contains no secrets.
+Configure these in Google Apps Script ScriptProperties:
+- TELEGRAM_BOT_TOKEN
+- TELEGRAM_CHAT_ID
+- API_BASE (if using a private proxy)
