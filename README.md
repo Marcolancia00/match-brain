@@ -1,44 +1,71 @@
 # Match Brain
 
-Match Brain is a Google Apps Script (JavaScript) project that generates football picks/schedules based on probabilistic estimates.
-It integrates external data sources (API), transforms match variables into statistical features, computes market probabilities, and tracks performance over time.
+Match Brain is an educational / experimental project developed in **Google Apps Script (JavaScript)**.
+It builds probabilistic picks for football events by transforming match/team variables into statistical features, computing market probabilities, and tracking real-world performance over time.
 
-> Educational / experimental project. Probabilities are estimates, not guarantees.
+> Disclaimer: probabilities are estimates, not guarantees. This repository is shared for educational purposes.
 
-## Features
-- 1X2 probability model (Poisson-based)
-- Derived markets:
-  - Over/Under 2.5
-  - BTTS (Goal/NoGoal)
-  - Double Chance
-- Risk scoring logic for multi-picks
-- VALUE bets support (fair odds vs bookmaker odds)
-- Performance tracking & analytics dashboard (Google Sheets)
-- Telegram notifications:
-  - weekly report
-  - value report
-  - accuracy alert
+---
 
-## Tech Stack
-- Google Apps Script (JavaScript)
-- Google Sheets as storage + dashboard
-- REST API integrations (via proxy if needed)
-- Telegram Bot for messaging
+## Architecture overview
 
-## Project structure (GitHub)
-- `src/engine/` → probability engine (Poisson + derived markets)
-- `src/pipeline/` → orchestration (analytics + value bets)
-- `src/integrations/` → external services (retry, telegram)
-- `src/messaging/` → Telegram reports & alerts
+**Data flow (high level)**
 
-> The repository is modular for readability. In Apps Script the same logic can be merged into one or multiple `.gs` files.
+1. **Fetch**
+   - Pull upcoming matches + standings/team stats from external REST APIs (optionally via a proxy to handle API keys and quotas).
+2. **Transform**
+   - Convert football variables (form, goals, points-per-game, etc.) into numeric features (`atk`, `def`, `strength`, …).
+3. **Score**
+   - Compute probabilities:
+     - **1X2** via **Poisson model**
+     - Derived markets:
+       - Over/Under 2.5
+       - BTTS (Goal/NoGoal)
+       - Double Chance
+4. **Compose**
+   - Build “schedine” (multi-picks) and compute a **risk score** based on probability + market type + composition.
+5. **Store / Dashboard**
+   - Write outputs to Google Sheets tabs (e.g. `Partite`, `Schedine`, `RISULTATI`).
+6. **Feedback loop**
+   - Compare predicted outcomes vs real outcomes and calculate performance metrics (accuracy by market / league / time).
+7. **Notify**
+   - Send Telegram reports/alerts (weekly summary, value bets, accuracy alerts).
 
-## Secrets
-This repo contains **no secrets**.
-Set these values in Google Apps Script ScriptProperties:
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-- `API_BASE` (if using a private proxy)
+---
 
-## Disclaimer
-This project is shared for educational purposes. No outcome is guaranteed.
+## Modules (GitHub)
+
+- `src/engine/`
+  - `poissonModel.js` → Poisson-based 1X2 probabilities
+  - `markets.js` → derived markets (Over/BTTS/DoubleChance)
+- `src/integrations/`
+  - `retry.js` → retry/backoff for external calls
+  - `telegram.js` → Telegram integration (no secrets committed)
+- `src/messaging/`
+  - `telegramReports.js` → weekly report + value bets report
+  - `accuracyAlert.js` → alert when accuracy drops below threshold
+- `src/pipeline/`
+  - `analytics.js` → performance tracking (accuracy by market/league/time)
+  - `valueBets.js` → QUOTE_INPUT generation + value recompute
+
+> Code is modular here for reviewability; in Apps Script it can be merged into a single `.gs` file or multiple `.gs` files.
+
+---
+
+## Probabilistic model (1X2)
+
+- Uses a Poisson goal model with expected goals (λ) derived from:
+  - team attack (`atk`)
+  - opponent defense (`def`)
+  - tunable weights (for calibration)
+
+Output:
+- `p(1)`, `p(X)`, `p(2)` plus `lambdaHome`, `lambdaAway`.
+
+Derived markets are computed via deterministic heuristics to keep runtime light and avoid external ML dependencies.
+
+---
+
+## Risk scoring
+
+Each
