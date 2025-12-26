@@ -16,10 +16,19 @@ export function sendTelegramMessage(text, { parseMode = "MarkdownV2" } = {}) {
   const token = props.getProperty("TELEGRAM_BOT_TOKEN");
   const chatId = props.getProperty("TELEGRAM_CHAT_ID");
 
-  if (!token || !chatId) {
-    Logger.log("Telegram not configured: missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.");
+  const enabled = props.getProperty("ENABLE_TELEGRAM");
+  if (enabled !== "true") {
+    Logger.log("Telegram disabled (ENABLE_TELEGRAM !== 'true').");
     return;
   }
+
+  if (!token || !chatId) {
+    Logger.log("Telegram not configured.");
+    return;
+  }
+
+  // fetch...
+}
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
   const payload = {
