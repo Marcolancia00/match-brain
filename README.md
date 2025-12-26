@@ -15,3 +15,16 @@ Configure these in Google Apps Script ScriptProperties:
 - TELEGRAM_BOT_TOKEN
 - TELEGRAM_CHAT_ID
 - API_BASE (if using a private proxy)
+
+
+## Telegram notifications
+Telegram integration is included, but **no tokens or chat ids** are stored in this repository.
+
+Configure these ScriptProperties in Google Apps Script:
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+
+Then you can run:
+- weekly report (`inviaAlertTelegramSettimanale`)
+- value report (`inviaValueBetsTelegram`)
+- accuracy alert (`inviaAlertTelegramSuAccuracy`)
