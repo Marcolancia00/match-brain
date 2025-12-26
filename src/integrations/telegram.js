@@ -1,49 +1,34 @@
 /**
- * Telegram integration (Google Apps Script).
- * SECURITY: do NOT hardcode tokens/chat ids in public repos.
- *
- * Store secrets in ScriptProperties:
+ * Telegram integration (safe for public repo).
+ * Secrets must be stored in Google Apps Script ScriptProperties:
  * - TELEGRAM_BOT_TOKEN
  * - TELEGRAM_CHAT_ID
  */
 
-export function getTelegramConfig() {
-  const props = PropertiesService.getScriptProperties();
-  return {
-    token: props.getProperty("TELEGRAM_BOT_TOKEN"),
-    chatId: props.getProperty("TELEGRAM_CHAT_ID"),
-  };
-}
-
-export function escapeMarkdownV2(text) {
-  if (text === null || text === undefined) return "";
-  const s = String(text);
+export function escapeMarkdownV2(s) {
+  if (s === null || s === undefined) return "";
+  s = String(s);
   return s.replace(/([_*\[\]\(\)~`>#+\-=|{}\.!\\])/g, "\\$1");
 }
 
-export function sendTelegramMessage(text, opts = {}) {
-  const { parseMode = "MarkdownV2" } = opts;
-  const { token, chatId } = getTelegramConfig();
+export function sendTelegramMessage(text, { parseMode = "MarkdownV2" } = {}) {
+  const props = PropertiesService.getScriptProperties();
+  const token = props.getProperty("TELEGRAM_BOT_TOKEN");
+  const chatId = props.getProperty("TELEGRAM_CHAT_ID");
 
   if (!token || !chatId) {
-    Logger.log("Telegram not configured: missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID in ScriptProperties.");
+    Logger.log("Telegram not configured: missing TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID.");
     return;
   }
 
   const url = `https://api.telegram.org/bot${token}/sendMessage`;
-
   const payload = {
     chat_id: chatId,
     text: parseMode === "MarkdownV2" ? escapeMarkdownV2(text) : String(text),
     parse_mode: parseMode,
   };
 
-  const options = {
-    method: "post",
-    payload,
-    muteHttpExceptions: true,
-  };
-
+  const options = { method: "post", payload, muteHttpExceptions: true };
   const resp = UrlFetchApp.fetch(url, options);
   Logger.log("Telegram response: " + resp.getContentText());
 }
